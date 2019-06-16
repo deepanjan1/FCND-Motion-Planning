@@ -5,7 +5,11 @@ from enum import Enum, auto
 
 import numpy as np
 
-from planning_utils_graph import a_star, heuristic, set_goal, create_graph_and_edges, create_nx_graph, closest_point, create_grid
+from planning_utils_graph import (
+        a_star, heuristic, set_goal,
+        create_graph_and_edges, create_nx_graph, closest_point,
+        create_grid, prune_path
+    )
 from udacidrone import Drone
 from udacidrone.connection import MavlinkConnection
 from udacidrone.messaging import MsgID
@@ -148,23 +152,24 @@ class MotionPlanning(Drone):
         grid, north_offset, east_offset = create_grid(data, TARGET_ALTITUDE, SAFETY_DISTANCE)
         print("North offset = {0}, east offset = {1}".format(north_offset, east_offset))
         # Define starting point on the grid (this is just grid center)
-        grid_start = (-north_offset, -east_offset)
+        # grid_start = (-north_offset, -east_offset)
         # TODO: convert start position to current position rather than map center
         grid_start = (int(self.local_position[0])-north_offset, int(self.local_position[1])-east_offset)
         # Set goal as some arbitrary position on the grid
-        # grid_goal = (-north_offset + 10, -east_offset + 10)
+        # grid_goal = (-north_offset + 20, -east_offset + 20)
+
+        # TODO: adapt to set goal as latitude / longitude position and convert
+        grid_goal = set_goal(grid, self.global_home, TARGET_ALTITUDE) # returns in lat/lon
+
+        grid_goal = global_to_local(grid_goal, self.global_home)
+        grid_goal = (int(grid_goal[0]), int(grid_goal[1]))
 
         # create Voronoi graph
         graph, edges = create_graph_and_edges(data, TARGET_ALTITUDE, SAFETY_DISTANCE)
-
+        print('==== just creatd edges and a graph ====')
         # create NetworkX graph object
         G = create_nx_graph(edges)
 
-        # TODO: adapt to set goal as latitude / longitude position and convert
-        # grid_goal = set_goal(grid, self.global_home, TARGET_ALTITUDE) # returns in lat/lon
-        #
-        # grid_goal = global_to_local(grid_goal, self.global_home)
-        # grid_goal = (int(grid_goal[0]), int(grid_goal[1]))
         # grid_goal = (-north_offset + 100, -east_offset + 65)
         # find the nearest points for the goal and start on the Graph
         near_goal = closest_point(G, grid_goal)
@@ -176,11 +181,18 @@ class MotionPlanning(Drone):
         path, _ = a_star(G, heuristic, near_start, near_goal)
         # TODO: prune path to minimize number of waypoints
         # TODO (if you're feeling ambitious): Try a different approach altogether!
-
+        print('==== path length ====')
+        print(len(path))
+        path = prune_path(path)
+        path.append(grid_goal)
+        print('==== pruned path length ====')
+        print(len(path))
         # Convert path to waypoints
-        waypoints = [[p[0] + north_offset, p[1] + east_offset, TARGET_ALTITUDE, 0] for p in path]
+        waypoints = [[int(p[0] + north_offset), int(p[1] + east_offset), TARGET_ALTITUDE, 0] for p in path]
         # Set self.waypoints
         self.waypoints = waypoints
+        print('==== self.waypoints ====')
+        print(self.waypoints)
         # TODO: send waypoints to sim (this is just for visualization of waypoints)
         self.send_waypoints()
 
@@ -203,7 +215,7 @@ if __name__ == "__main__":
     parser.add_argument('--host', type=str, default='127.0.0.1', help="host address, i.e. '127.0.0.1'")
     args = parser.parse_args()
 
-    conn = MavlinkConnection('tcp:{0}:{1}'.format(args.host, args.port), timeout=60)
+    conn = MavlinkConnection('tcp:{0}:{1}'.format(args.host, args.port), timeout=600)
     drone = MotionPlanning(conn)
     time.sleep(1)
 

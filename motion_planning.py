@@ -152,13 +152,13 @@ class MotionPlanning(Drone):
         # TODO: convert start position to current position rather than map center
         grid_start = (int(self.local_position[0])-north_offset, int(self.local_position[1])-east_offset)
         # Set goal as some arbitrary position on the grid
-        # grid_goal = (-north_offset + 100, -east_offset + 75)
+        grid_goal = (-north_offset + 20, -east_offset + 20)
 
         # TODO: adapt to set goal as latitude / longitude position and convert
-        grid_goal = set_goal(grid, self.global_home, TARGET_ALTITUDE) # returns in lat/lon
-
-        grid_goal = global_to_local(grid_goal, self.global_home)
-        grid_goal = (int(grid_goal[0]), int(grid_goal[1]))
+        # grid_goal = set_goal(grid, self.global_home, TARGET_ALTITUDE) # returns in lat/lon
+        #
+        # grid_goal = global_to_local(grid_goal, self.global_home)
+        # grid_goal = (int(grid_goal[0]), int(grid_goal[1]))
         # Run A* to find a path from start to goal
         # TODO: add diagonal motions with a cost of sqrt(2) to your A* implementation
         # or move to a different search space such as a graph (not done here)
@@ -173,6 +173,8 @@ class MotionPlanning(Drone):
         waypoints = [[p[0] + north_offset, p[1] + east_offset, TARGET_ALTITUDE, 0] for p in pruned_path]
         # Set self.waypoints
         self.waypoints = waypoints
+        print('==== self.waypoints ====')
+        print(self.waypoints)
         # TODO: send waypoints to sim (this is just for visualization of waypoints)
         self.send_waypoints()
 

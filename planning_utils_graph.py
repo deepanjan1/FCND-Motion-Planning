@@ -1,6 +1,7 @@
 from enum import Enum
 from queue import PriorityQueue
 import numpy as np
+import numpy.linalg as LA
 from udacidrone.frame_utils import local_to_global
 import networkx as nx
 from scipy.spatial import Voronoi
@@ -57,8 +58,8 @@ def create_graph_and_edges(data, drone_altitude, safety_distance):
 
         cells = list(bresenham(int(p1[0]), int(p1[1]), int(p2[0]), int(p2[1])))
         hit = False
-        print('==== cells(bresenham) ====')
-        print(cells)
+        # print('==== cells(bresenham) ====')
+        # print(cells)
         for c in cells:
             # First check if we're off the map
             if np.amin(c) < 0 or c[0] >= grid.shape[0] or c[1] >= grid.shape[1]:
@@ -222,7 +223,7 @@ def a_star(graph, h, start, goal):
 
                 if next_node not in visited:
                     visited.add(next_node)
-                    branch[next_node] = (branch_cost, current_node, action)
+                    branch[next_node] = (branch_cost, current_node)
                     queue.put((queue_cost, next_node))
 
     if found:
@@ -290,7 +291,23 @@ def set_goal(grid, global_home, target_altitude):
 def point(p):
     return np.array([p[0], p[1], 1.]).reshape(1, -1)
 
-def collinearity_check(p1, p2, p3, epsilon=1e-6):
+def collinearity_check(p1, p2, p3, epsilon=1e-3):
     m = np.concatenate((p1, p2, p3), 0)
     det = np.linalg.det(m)
     return abs(det) < epsilon
+
+def prune_path(path):
+    pruned_path = [p for p in path]
+    i = 0
+    while i < (len(pruned_path) - 2):
+        p1 = point(pruned_path[i])
+        p2 = point(pruned_path[i+1])
+        p3 = point(pruned_path[i+2])
+        if collinearity_check(p1, p2, p3):
+            pruned_path.remove(pruned_path[i+1])
+        else:
+            i += 1
+
+    return pruned_path
+
+# def calculate_waypoints(global_start, global_)
