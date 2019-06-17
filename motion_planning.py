@@ -152,13 +152,13 @@ class MotionPlanning(Drone):
         # TODO: convert start position to current position rather than map center
         grid_start = (int(self.local_position[0])-north_offset, int(self.local_position[1])-east_offset)
         # Set goal as some arbitrary position on the grid
-        grid_goal = (-north_offset + 20, -east_offset + 20)
+        # grid_goal = (-north_offset + 20, -east_offset + 20)
 
         # TODO: adapt to set goal as latitude / longitude position and convert
-        # grid_goal = set_goal(grid, self.global_home, TARGET_ALTITUDE) # returns in lat/lon
-        #
-        # grid_goal = global_to_local(grid_goal, self.global_home)
-        # grid_goal = (int(grid_goal[0]), int(grid_goal[1]))
+        grid_goal = set_goal(grid, self.global_home, TARGET_ALTITUDE) # returns in lat/lon
+
+        grid_goal = global_to_local(grid_goal, self.global_home)
+        grid_goal = (int(grid_goal[0]), int(grid_goal[1]))
         # Run A* to find a path from start to goal
         # TODO: add diagonal motions with a cost of sqrt(2) to your A* implementation
         # or move to a different search space such as a graph (not done here)
@@ -166,11 +166,13 @@ class MotionPlanning(Drone):
         path, _ = a_star(grid, heuristic, grid_start, grid_goal)
         # TODO: prune path to minimize number of waypoints
         # TODO (if you're feeling ambitious): Try a different approach altogether!
-
+        print('==== path length ====')
+        print(len(path))
         pruned_path = prune_path(path)
-
+        print('==== pruned path length ====')
+        print(len(pruned_path))
         # Convert path to waypoints
-        waypoints = [[p[0] + north_offset, p[1] + east_offset, TARGET_ALTITUDE, 0] for p in pruned_path]
+        waypoints = [[int(p[0] + north_offset), int(p[1] + east_offset), TARGET_ALTITUDE, 0] for p in pruned_path]
         # Set self.waypoints
         self.waypoints = waypoints
         print('==== self.waypoints ====')
@@ -197,7 +199,7 @@ if __name__ == "__main__":
     parser.add_argument('--host', type=str, default='127.0.0.1', help="host address, i.e. '127.0.0.1'")
     args = parser.parse_args()
 
-    conn = MavlinkConnection('tcp:{0}:{1}'.format(args.host, args.port), timeout=600)
+    conn = MavlinkConnection('tcp:{0}:{1}'.format(args.host, args.port), timeout=6000)
     drone = MotionPlanning(conn)
     time.sleep(1)
 

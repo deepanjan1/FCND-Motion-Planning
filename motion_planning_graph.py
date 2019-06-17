@@ -156,7 +156,7 @@ class MotionPlanning(Drone):
         # TODO: convert start position to current position rather than map center
         grid_start = (int(self.local_position[0])-north_offset, int(self.local_position[1])-east_offset)
         # Set goal as some arbitrary position on the grid
-        # grid_goal = (-north_offset + 20, -east_offset + 20)
+        # grid_goal = (-north_offset + 10, -east_offset + 10)
 
         # TODO: adapt to set goal as latitude / longitude position and convert
         grid_goal = set_goal(grid, self.global_home, TARGET_ALTITUDE) # returns in lat/lon
@@ -178,21 +178,25 @@ class MotionPlanning(Drone):
         # TODO: add diagonal motions with a cost of sqrt(2) to your A* implementation
         # or move to a different search space such as a graph (not done here)
         print('Local Start and Goal: ', grid_start, grid_goal)
+        print('Closest Local Start and Goal: ', near_start, near_goal)
         path, _ = a_star(G, heuristic, near_start, near_goal)
         # TODO: prune path to minimize number of waypoints
         # TODO (if you're feeling ambitious): Try a different approach altogether!
-        print('==== path length ====')
-        print(len(path))
-        path = prune_path(path)
-        path.append(grid_goal)
-        print('==== pruned path length ====')
-        print(len(path))
+        # print('==== path length ====')
+        # print(len(path))
+        print('==== path ====')
+        print(path)
+        pruned_path = prune_path(path)
+        pruned_path.append(grid_goal)
+        print('==== pruned path ====')
+        print(pruned_path)
         # Convert path to waypoints
-        waypoints = [[int(p[0] + north_offset), int(p[1] + east_offset), TARGET_ALTITUDE, 0] for p in path]
+        waypoints = [[int(p[0] + north_offset), int(p[1] + east_offset), TARGET_ALTITUDE, 0] for p in pruned_path]
         # Set self.waypoints
         self.waypoints = waypoints
         print('==== self.waypoints ====')
         print(self.waypoints)
+
         # TODO: send waypoints to sim (this is just for visualization of waypoints)
         self.send_waypoints()
 
@@ -215,7 +219,7 @@ if __name__ == "__main__":
     parser.add_argument('--host', type=str, default='127.0.0.1', help="host address, i.e. '127.0.0.1'")
     args = parser.parse_args()
 
-    conn = MavlinkConnection('tcp:{0}:{1}'.format(args.host, args.port), timeout=600)
+    conn = MavlinkConnection('tcp:{0}:{1}'.format(args.host, args.port), timeout=60000)
     drone = MotionPlanning(conn)
     time.sleep(1)
 
