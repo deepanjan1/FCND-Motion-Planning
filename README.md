@@ -5,6 +5,18 @@
 
 This project is a continuation of the Backyard Flyer project where you executed a simple square shaped flight path. In this project you will integrate the techniques that you have learned throughout the last several lessons to plan a path through an urban environment. Check out the [project rubric](https://review.udacity.com/#!/rubrics/1534/view) for more detail on what constitutes a passing submission.
 
+---
+## Project Submission Notes
+In this project, I created a grid and graph implementation to build a 3D motion plan.  I will focus my answers and instructions on the graph implementation (found in file `motion_planning_graph.py` and `planning_utils_graph.py`).  
+
+### Explanation what's going on with `motion_planning.py` and `planning_utils.py`
+The program (prior to addressing the TODOs) is doing the following:
+* The setup of `motion_planning.py` is very similar to the Backyard Flyer project.  The `States` class is used to hold and retrieve the different states of flight for the Drone API.
+* The `MotionPlanning` class is where the:
+  1) `colliders.csv` file is loaded and analyzed for obstacles.  This file is convered into a numpy array where obstacles and the safety distance is set to "1" at the given `TARGET ALTITUDE`.  
+
+---
+
 ## Option to do this project in a GPU backed virtual machine in the Udacity classroom!
 Rather than downloading the simulator and starter files you can simply complete this project in a virual workspace in the Udacity classroom! Follow [these instructions](https://classroom.udacity.com/nanodegrees/nd787/parts/5aa0a956-4418-4a41-846f-cb7ea63349b3/modules/0c12632a-b59a-41c1-9694-2b3508f47ce7/lessons/5f628104-5857-4a3f-93f0-d8a53fe6a8fd/concepts/ab09b378-f85f-49f4-8845-d59025dd8a8e?contentVersion=1.0.0&contentLocale=en-us) to proceed with the VM. 
 
