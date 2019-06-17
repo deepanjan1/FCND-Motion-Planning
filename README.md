@@ -12,8 +12,19 @@ In this project, I created a grid and graph implementation to build a 3D motion 
 ### Explanation what's going on with `motion_planning.py` and `planning_utils.py`
 The program (prior to addressing the TODOs) is doing the following:
 * The setup of `motion_planning.py` is very similar to the Backyard Flyer project.  The `States` class is used to hold and retrieve the different states of flight for the Drone API.
-* The `MotionPlanning` class is where the:
-  1) `colliders.csv` file is loaded and analyzed for obstacles.  This file is convered into a numpy array where obstacles and the safety distance is set to "1" at the given `TARGET ALTITUDE`.  
+* The `MotionPlanning` class is where:
+  1) A set of instance methods are used to move the Drone through each of the action States.  In addition, the `state_callback()` method is the method used to detect the current state and determine when the Drone should move to the next state.
+  2) `colliders.csv` file is loaded and analyzed for obstacles.  This file is converted into a numpy array where obstacles and the safety distance is set to "1" at the given `TARGET ALTITUDE`.  
+  3) The Drone calibrates with sensors to determine where it is on the map.
+  4) We create a goal that is set to be a diagonal line (we're just move it north and east 10 grid points).  
+  5) Initially, we cannot move in diagonal lines so A* can only find paths going North, East, West, and South.  
+  6) Then, the path is loaded as waypoints and sent to the Drone to run.
+
+The `planning_utils.py` file has the following helper functions that are used within `motion_planning.py`:
+* The `create_grid()` function takes in the obstacle data (in `colliders.csv`), target altitude, and safety distance to create a grid of viable spaces for the drone to travel in.  
+* The `Action(Enum)` class specifies directions that can be taken when determining the optimal path via the A* Searth algorithm.  Because this is initially set to adjacent grids, it cannot move diagonally which explains the "zigzag" motion of the Drone.
+* The `valid_actions(grid, current_node)` function looks at whether the specific action can be taken.  It checks to ensure the action would not run into an obstacle or move the drone off the grid.
+* Finally, A* Search uses a Euclidean heuristic for cost and the obstacle data to determine the optimal path for the drone to take from the start to goal points.  
 
 ---
 
