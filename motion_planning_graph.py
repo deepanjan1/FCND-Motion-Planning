@@ -140,11 +140,9 @@ class MotionPlanning(Drone):
 
         # TODO: convert to current local position using global_to_local()
         (north, east, down) = global_to_local(self.global_position, self.global_home)
-        # print('==== local: north, east, down ====')
-        # print(north, east, down)
 
-        print('global home {0}, position {1}, local position {2}'.format(self.global_home, self.global_position,
-                                                                         self.local_position))
+        print('global home {0}, position {1}, local position {2}'\
+        .format(self.global_home, self.global_position, self.local_position))
 
         data = np.loadtxt('colliders.csv', delimiter=',', dtype='Float64', skiprows=2)
 
@@ -153,45 +151,48 @@ class MotionPlanning(Drone):
         print("North offset = {0}, east offset = {1}".format(north_offset, east_offset))
         # Define starting point on the grid (this is just grid center)
         # grid_start = (-north_offset, -east_offset)
+
         # TODO: convert start position to current position rather than map center
         grid_start = (int(self.local_position[0])-north_offset, int(self.local_position[1])-east_offset)
         # Set goal as some arbitrary position on the grid
         # grid_goal = (-north_offset + 10, -east_offset + 10)
 
         # TODO: adapt to set goal as latitude / longitude position and convert
-        grid_goal = set_goal(grid, self.global_home, TARGET_ALTITUDE) # returns in lat/lon
-
+        grid_goal = set_goal(grid, self.global_home, TARGET_ALTITUDE)
         grid_goal = global_to_local(grid_goal, self.global_home)
         grid_goal = (int(grid_goal[0]), int(grid_goal[1]))
 
         # create Voronoi graph
         graph, edges = create_graph_and_edges(data, TARGET_ALTITUDE, SAFETY_DISTANCE)
         print('==== just creatd edges and a graph ====')
+
         # create NetworkX graph object
         G = create_nx_graph(edges)
 
-        # grid_goal = (-north_offset + 100, -east_offset + 65)
         # find the nearest points for the goal and start on the Graph
         near_goal = closest_point(G, grid_goal)
         near_start = closest_point(G, grid_start)
+
         # Run A* to find a path from start to goal
         # TODO: add diagonal motions with a cost of sqrt(2) to your A* implementation
         # or move to a different search space such as a graph (not done here)
+
+        # Using graph search instead of a grid search space
         print('Local Start and Goal: ', grid_start, grid_goal)
         print('Closest Local Start and Goal: ', near_start, near_goal)
         path, _ = a_star(G, heuristic, near_start, near_goal)
+        print('==== path length ====')
+        print(len(path))
+
         # TODO: prune path to minimize number of waypoints
         # TODO (if you're feeling ambitious): Try a different approach altogether!
-        # print('==== path length ====')
-        # print(len(path))
-        print('==== path ====')
-        print(path)
         pruned_path = prune_path(path)
-        pruned_path.append(grid_goal)
-        print('==== pruned path ====')
-        print(pruned_path)
+        print('==== pruned path length ====')
+        print(len(pruned_path))
+
         # Convert path to waypoints
         waypoints = [[int(p[0] + north_offset), int(p[1] + east_offset), TARGET_ALTITUDE, 0] for p in pruned_path]
+
         # Set self.waypoints
         self.waypoints = waypoints
         print('==== self.waypoints ====')

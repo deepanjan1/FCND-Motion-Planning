@@ -291,12 +291,18 @@ def set_goal(grid, global_home, target_altitude):
 def point(p):
     return np.array([p[0], p[1], 1.]).reshape(1, -1)
 
-def collinearity_check(p1, p2, p3, epsilon=1e-2):
+def collinearity_check(p1, p2, p3, epsilon=1e-6):
     m = np.concatenate((p1, p2, p3), 0)
     det = np.linalg.det(m)
     return abs(det) < epsilon
 
 def prune_path(path):
+    '''
+        Takes in a path from A* search and prunes it for un-needed
+        points based on the collinearity_check.
+
+        Returns: pruned path of points
+    '''
     pruned_path = [p for p in path]
     i = 0
     while i < (len(pruned_path) - 2):
@@ -309,5 +315,3 @@ def prune_path(path):
             i += 1
 
     return pruned_path
-
-# def calculate_waypoints(global_start, global_)
